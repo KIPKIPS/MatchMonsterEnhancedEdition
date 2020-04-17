@@ -42,6 +42,8 @@ public class UIManager : MonoBehaviour {
     public Text top2;
     public Text top3;
     public Animator showMoreAnim;
+    public Animator shopPanelAnim;
+    public bool isMapOpen;
     void Awake() {
         manager=GameManager.instance;
         isShowMoreOpen = false;
@@ -108,6 +110,7 @@ public class UIManager : MonoBehaviour {
                 anims[i].SetTrigger("close");
             }
         }
+        isMapOpen = false;
     }
     public void QuitGame() {
         if (isShowMoreOpen) {
@@ -117,6 +120,7 @@ public class UIManager : MonoBehaviour {
         Application.Quit();
     }
     public void StartGame() {
+        isMapOpen = true;
         if (canAudio) {
             AudioSource.PlayClipAtPoint(audios[0], Camera.main.transform.position, 0.5f);
             AudioSource.PlayClipAtPoint(audios[1], Camera.main.transform.position, 1);
@@ -173,7 +177,6 @@ public class UIManager : MonoBehaviour {
             AudioSource.PlayClipAtPoint(audios[0], Camera.main.transform.position, 0.5f);
             AudioSource.PlayClipAtPoint(audios[2], Camera.main.transform.position, 1);
         }
-        
         aboutUsPanel.GetComponent<Animator>().SetTrigger("close");
     }
 
@@ -323,5 +326,117 @@ public class UIManager : MonoBehaviour {
     }
     public void TopKClose() {
         topKPanel.GetComponent<Animator>().SetTrigger("close");
+    }
+
+    public Text diamandText;
+    //商店
+    public void ShopOpen() {
+        if (isMapOpen) {
+            mapPanel.GetComponent<Animator>().SetTrigger("tomenu");
+        }
+        shopPanelAnim.SetTrigger("open");
+        if (isShowMoreOpen) {
+            showMoreAnim.SetTrigger("close");
+            isShowMoreOpen = false;
+        }
+        diamandText.text = PlayerPrefs.GetInt("Diamand", 0) + "";
+    }
+    public void ShopClose() {
+        if (isShowMoreOpen) {
+             showMoreAnim.SetTrigger("close");
+             isShowMoreOpen = false;
+        }
+        shopPanelAnim.SetTrigger("close");
+    }
+
+    public GameObject diamondShop;
+    public GameObject sugerShop;
+    public GameObject toolsShop;
+    public Animator payFailureAnim;
+    public void DiamondShop() {
+        diamondShop.SetActive(true);
+        sugerShop.SetActive(false);
+        toolsShop.SetActive(false);
+    }
+    public void SugerShop() {
+        diamondShop.SetActive(false);
+        sugerShop.SetActive(true);
+        toolsShop.SetActive(false);
+    }
+    public void ToolsShop() {
+        diamondShop.SetActive(false);
+        sugerShop.SetActive(false);
+        toolsShop.SetActive(true);
+    }
+    public Text warningText;
+    public void RMBPay() {
+        payFailureAnim.gameObject.SetActive(true);
+        payFailureAnim.SetTrigger("open");
+        if (EventSystem.current.currentSelectedGameObject.transform.parent.name=="group_tools") {
+            warningText.text= "FBI Warning!\n" + "购买失败,代码没写完,买了你也用不了";
+        }
+        else {
+            warningText.text = "FBI Warning!\n" + "购买失败,开发模式下仅限购买道具";
+        }
+    }
+    public void PayFailurePageClose() {
+        payFailureAnim.SetTrigger("close");
+    }
+    public Text buyNums;
+    public Animator payPageAnim;
+    private int buyItemNums;
+    public string buyType;
+    //打开支付界面
+    public void DiamandPay() {
+        buyItemNums = 0;
+        buyNums.text = "0";
+        buyType = "";
+        if (payPageAnim.gameObject.activeInHierarchy==false) {
+            payPageAnim.gameObject.SetActive(true);
+        }
+        payPageAnim.SetTrigger("open");
+        if (EventSystem.current.currentSelectedGameObject.name=="cross") {
+            buyType = "cross";
+        }
+        else {
+            buyType = "rainbow";
+        }
+    }
+    public void AddItemNum() {
+        buyItemNums++;
+        buyNums.text = buyItemNums + "";
+    }
+    public void MinusItemNum() {
+        buyItemNums--;
+        buyItemNums = Mathf.Clamp(buyItemNums, 0, Int32.MaxValue);
+        buyNums.text = buyItemNums + "";
+    }
+    public void DiamandPayClose() {
+        payPageAnim.SetTrigger("close");
+    }
+    public Text messageText;
+    public void Pay() {
+        int restDiamand = Convert.ToInt32(diamandText.text);
+        if (buyType=="cross") {
+            if (restDiamand >= buyItemNums *5 && buyItemNums > 0) {
+                diamandText.text = (restDiamand - buyItemNums * 5) + "";
+                PlayerPrefs.SetInt("Diamand", restDiamand - buyItemNums * 5);
+                messageText.text = "购买成功!";
+            }
+            else {
+                messageText.text = "购买失败,钻石不足!";
+            }
+        }
+        else {
+            if (restDiamand >= buyItemNums *20&&buyItemNums>0) {
+                diamandText.text = (restDiamand - buyItemNums * 10) + "";
+                PlayerPrefs.SetInt("Diamand", restDiamand - buyItemNums * 10);
+                messageText.text = "购买成功!";
+            }
+            else {
+                messageText.text = "购买失败,钻石不足!";
+            }
+        }
+        messageText.transform.parent.gameObject.SetActive(true);
     }
 }

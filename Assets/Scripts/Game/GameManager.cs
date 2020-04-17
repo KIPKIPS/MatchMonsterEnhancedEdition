@@ -74,7 +74,13 @@ public class GameManager : MonoBehaviour {
     private string curTaskType;
     private bool showTaskFinishedPanel;
     public GameObject taskFinishPanel;
+
+    public Image bar;
+    public Text progress;
+    private bool doubleScore;
+    public Text diamandText;
     void Awake() {
+        doubleScore = false;
         taskFinishPanel.SetActive(false);
         showTaskFinishedPanel = true;
         curClearModels = 0;
@@ -150,15 +156,26 @@ public class GameManager : MonoBehaviour {
         }
         if (gameBegin) {
             gameTime -= Time.deltaTime;
-            restTimeText.text = gameTime.ToString("0");//0取整,0.0保留一位小数,0.00保留两位小数......
+            restTimeText.text = gameTime.ToString("0.0");//0取整,0.0保留一位小数,0.00保留两位小数......
             scoreText.text = score + "";
+            if (curTaskType=="0") {
+                progress.text = ((float) curClearModels * 100 / goalNums).ToString("0.0") + "%";
+                bar.fillAmount = Mathf.Clamp(Mathf.Lerp(bar.fillAmount, (float)curClearModels / goalNums, 0.2f),0,1);
+            }
+            else {
+                bar.fillAmount = Mathf.Clamp(Mathf.Lerp(bar.fillAmount, (float)score / goalNums, 0.2f),0,1);
+                progress.text = ((float)score * 100 / goalNums).ToString("0.0") + "%";
+            }
+            if (progress.text == "100%"&&doubleScore) {
+
+                doubleScore = false;
+            }
         }
         else {
             score = 0;
         }
         if (showTaskFinishedPanel) {
             if (curTaskType == "0") {
-                Debug.Log(curClearModels/goalNums);
                 if (curClearModels >= goalNums) {
                     Debug.Log("task 0 finish");
                     taskFinishPanel.SetActive(true);
@@ -166,7 +183,7 @@ public class GameManager : MonoBehaviour {
                 }
             }
             else {
-                Debug.Log(score / goalNums);
+                
                 if (score >= goalNums) {
                     Debug.Log("task 1 finish");
                     taskFinishPanel.SetActive(true);
@@ -193,7 +210,7 @@ public class GameManager : MonoBehaviour {
         while (needFill) {
             yield return new WaitForSeconds(t);
             while (Fill(t)) {
-                yield return new WaitForSeconds(t*2);
+                yield return new WaitForSeconds(t);
             }
             //清除匹配的model
             needFill = ClearAllMatchModels();
@@ -649,39 +666,39 @@ public class GameManager : MonoBehaviour {
                         if (gameBegin) {
                             switch (num) {
                                 case 3:
-                                    scoreStep = 10;
+                                    scoreStep = 20;
                                     score += scoreStep;
                                     break;
                                 case 4:
                                     Excellent(0);
-                                    scoreStep = 20;
+                                    scoreStep = 60;
                                     score += scoreStep;
                                     break;
                                 case 5:
-                                    scoreStep = 30;
+                                    scoreStep = 80;
                                     score += scoreStep;
                                     if (isSkill == false) {
-                                        gameTime += 3;
+                                        gameTime += 6f;
                                         Excellent(1);
-                                        PlayerPrefs.SetInt("TimeAddNums", PlayerPrefs.GetInt("TimeAddNums", 0) + 3);//记录累计加时
+                                        PlayerPrefs.SetInt("TimeAddNums", PlayerPrefs.GetInt("TimeAddNums", 0) + 6);//记录累计加时
                                     }
                                     break;
                                 case 6:
-                                    scoreStep = 60;
-                                    score += scoreStep;
-                                    if (isSkill == false) {
-                                        gameTime += 5;
-                                        Excellent(2);
-                                        PlayerPrefs.SetInt("TimeAddNums", PlayerPrefs.GetInt("TimeAddNums", 0) + 5);//记录累计加时
-                                    }
-                                    break;
-                                case 7:
-                                    scoreStep = 100;
+                                    scoreStep = 180;
                                     score += scoreStep;
                                     if (isSkill == false) {
                                         gameTime += 10;
-                                        Excellent(3);
+                                        Excellent(2);
                                         PlayerPrefs.SetInt("TimeAddNums", PlayerPrefs.GetInt("TimeAddNums", 0) + 10);//记录累计加时
+                                    }
+                                    break;
+                                case 7:
+                                    scoreStep = 310;
+                                    score += scoreStep;
+                                    if (isSkill == false) {
+                                        gameTime += 15;
+                                        Excellent(3);
+                                        PlayerPrefs.SetInt("TimeAddNums", PlayerPrefs.GetInt("TimeAddNums", 0) + 15);//记录累计加时
                                     }
                                     break;
                             }
@@ -748,6 +765,7 @@ public class GameManager : MonoBehaviour {
                 }
             }
             score += 5 * count;
+            score += 20;
             StartCoroutine(FillAll(fillTime));
         }
     }
@@ -759,13 +777,15 @@ public class GameManager : MonoBehaviour {
             //Debug.Log("cross");
             for (int i = Mathf.Clamp(x - 1, 0, xCol - 1); i <= Mathf.Clamp(x + 1, 1, xCol - 1); i++) {
                 ClearModel(i, y);
+                score += 10;
             }
             for (int j = Mathf.Clamp(y - 1, 0, yRow - 1); j <= Mathf.Clamp(y + 1, 1, yRow - 1); j++) {
                 if (j != y) {
                     ClearModel(x, j);
+                    score += 10;
                 }
             }
-            score += 80;
+            score += 10;
             if (models[x, y] != null && models[x, y].CanClear()) {
                 models[x, y].ModelClearComponent.Clear();
                 models[x, y] = CreatNewModel(x, y, ModelType.Empty);
@@ -886,13 +906,21 @@ public class GameManager : MonoBehaviour {
         if (curTaskType == "0") {
             if (curClearModels >= goalNums) {
                 //Debug.Log("task finish");
+                diamandText.text = award + "";
                 PlayerPrefs.SetInt("Diamand", PlayerPrefs.GetInt("Diamand", 0) + award);
+            }
+            else {
+                diamandText.text =  "0";
             }
         }
         else {
             if (score >= goalNums) {
                 //Debug.Log("task finish");
+                diamandText.text = award + "";
                 PlayerPrefs.SetInt("Diamand", PlayerPrefs.GetInt("Diamand", 0) + award);
+            }
+            else {
+                diamandText.text = "0";
             }
         }
     }
