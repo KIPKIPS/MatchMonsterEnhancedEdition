@@ -13,6 +13,7 @@ public class ModelBase : MonoBehaviour {
             }
         }
     }
+    public GameObject rainbowSpawn;
     public float firstClickTime;
     public bool isFirstClick;
     public bool canSkill;
@@ -46,6 +47,7 @@ public class ModelBase : MonoBehaviour {
         get { return modelClearComponent; }
     }
     void Awake() {
+        rainbowSpawn = GameObject.FindGameObjectWithTag("Rainbow");
         firstClickTime = 0;
         canSkill = false;
         isFirstClick = true;
@@ -86,28 +88,28 @@ public class ModelBase : MonoBehaviour {
 
     public void OnMouseEnter() {
         manager.TargetModel(this);//设置目标
+        //Debug.Log(this.ModelColorComponent.color);
     }
     public void OnMouseDown() {
         if (manager.canClick) {
             manager.canClick = false;
             manager.SelectModel(this);//选中model
-            if (GameManager.instance.lastSelectModel != GameManager.instance.selectModel) {
-                if (GameManager.instance.lastSelectModel != null&& GameManager.instance.lastSelectModel.CanColor()) {
-                    ModelColorComponent.UnSelect(GameManager.instance.lastSelectModel.ModelColorComponent.highlight);
+            if (manager.lastSelectModel != manager.selectModel) {
+                if (manager.lastSelectModel != null&& manager.lastSelectModel.CanColor()) {
+                    ModelColorComponent.UnSelect(manager.lastSelectModel.ModelColorComponent.highlight);
                 }
-                if (GameManager.instance.selectModel!=null&& GameManager.instance.selectModel.CanColor()) {
-                    ModelColorComponent.Select(GameManager.instance.selectModel.ModelColorComponent.highlight);
+                if (manager.selectModel!=null&& manager.selectModel.CanColor()) {
+                    ModelColorComponent.Select(manager.selectModel.ModelColorComponent.highlight);
                 }
             }
             else {
-                if (GameManager.instance.selectModel != null && GameManager.instance.selectModel.CanColor()) {
-                    ModelColorComponent.Select(GameManager.instance.selectModel.ModelColorComponent.highlight);
+                if (manager.selectModel != null && manager.selectModel.CanColor()) {
+                    ModelColorComponent.Select(manager.selectModel.ModelColorComponent.highlight);
                 }
             }
         }
         if (Type == GameManager.ModelType.CrossClear || Type == GameManager.ModelType.RainBow) {
             if (Time.time - firstClickTime > 0.5f) {
-                Debug.Log("chaoshi");
                 isFirstClick = true;
             }
             if (isFirstClick) {
@@ -123,20 +125,24 @@ public class ModelBase : MonoBehaviour {
         manager.ReleaseModel();
         if (manager.isSkill == false && canSkill) {
             if (Time.time - firstClickTime <= 0.5f) {
+                //skill1
                 if (Type == GameManager.ModelType.CrossClear) {
-                    Debug.Log("skill1");
+                    //Debug.Log("skill1");
                     manager.ClearCross(x, y);
                     Instantiate(effect_Row, manager.CalGridPos(x, y), Quaternion.Euler(new Vector3(0, 0, 90)));
                     Instantiate(effect_Col, manager.CalGridPos(x, y), Quaternion.identity);
                 }
+                //skill2
                 else {
-                    Debug.Log("skill2");
-                    manager.ClearByType((ModelColor.ColorType)Random.Range(0, 4));
+                    ModelColor.ColorType clearType = (ModelColor.ColorType) Random.Range(0, 5);
+                    manager.ClearByType(clearType);
+                    rainbowSpawn.transform.GetChild((int)clearType).gameObject.SetActive(true);
                     this.modelClearComponent.Clear();
                     if (manager.models[x, y] != null && manager.models[x, y].CanClear()) {
                         manager.models[x, y].ModelClearComponent.Clear();
                         manager.models[x, y] = manager.CreatNewModel(x, y, GameManager.ModelType.Empty);
                     }
+
                 }
             }
             canSkill = false;

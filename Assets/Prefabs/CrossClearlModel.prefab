@@ -160,6 +160,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   x: 0
   HP: 0
+  rainbowSpawn: {fileID: 0}
   firstClickTime: 0
   isFirstClick: 0
   canSkill: 0
