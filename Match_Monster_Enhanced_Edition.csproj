@@ -243,6 +243,7 @@
     <Compile Include="Assets\Scripts\Game\GameBegin.cs" />
     <Compile Include="Assets\Scripts\Game\GameManager.cs" />
     <Compile Include="Assets\Scripts\Game\GameOver.cs" />
+    <Compile Include="Assets\Scripts\Game\GameTask.cs" />
     <Compile Include="Assets\Scripts\Game\ModelBase.cs" />
     <Compile Include="Assets\Scripts\Game\ModelClear.cs" />
     <Compile Include="Assets\Scripts\Game\ModelColor.cs" />
