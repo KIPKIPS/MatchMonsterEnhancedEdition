@@ -26,9 +26,9 @@ public class LevelManager : MonoBehaviour {
         isLevelLock = true;
         unlockImage.SetActive(false);
         lockImage.SetActive(true);
-        for (int i = 1; i <= 3; i++) {
-            transform.GetChild(1).transform.GetChild(i).gameObject.SetActive(false);
-        }
+//        for (int i = 1; i <= 3; i++) {
+//            transform.GetChild(1).transform.GetChild(i).gameObject.SetActive(false);
+//        }
     }
 //    IEnumerator Idle() {
 //        float offset=0;

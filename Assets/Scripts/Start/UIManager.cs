@@ -48,7 +48,12 @@ public class UIManager : MonoBehaviour {
 
     public int curSelectLevelIndex;
     public LevelManager[] levels;
+
+    public bool isChatOpen;//聊天窗口是否打开
+    private Queue<string> textQueue;
     void Awake() {
+        textQueue=new Queue<string>();
+        isChatOpen = false;
         curSelectLevelIndex = PlayerPrefs.GetInt("CurLevel", 0);
         if (curSelectLevelIndex==0) {
             PlayerPrefs.SetInt("CurLevel",0);
@@ -64,15 +69,8 @@ public class UIManager : MonoBehaviour {
             Camera.main.GetComponent<AudioSource>().Stop();
         }
         showMoreAnim = showMorePanel.GetComponent<Animator>();
-        for (int i = 0; i <= curSelectLevelIndex; i++) {
-            levels[i].Unlock();//解锁关卡
-            if (i<curSelectLevelIndex) {
-                int star = UnityEngine.Random.Range(1, 4);
-                for (int j= 1; j <=star;j++) {
-                    levels[i].transform.GetChild(1).transform.GetChild(j).gameObject.SetActive(true);
-                }
-            }
-        }
+        levels[0].Unlock();
+        levels[1].Unlock();
     }
     // Use this for initialization
     void Start() {
@@ -80,6 +78,9 @@ public class UIManager : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
+        if (Input.GetKeyDown(KeyCode.Return)) {
+            SendMessage();
+        }
         canAudio = PlayerPrefs.GetInt("Audio", 1) == 1;
         Debug.Log(curSelectLevelIndex);
     }
@@ -171,6 +172,10 @@ public class UIManager : MonoBehaviour {
             AudioSource.PlayClipAtPoint(audios[0], Camera.main.transform.position, 0.5f);
             AudioSource.PlayClipAtPoint(audios[2], Camera.main.transform.position, 1);
         }
+
+        if (isMapOpen) {
+            isMapOpen = false;
+        }
         mapPanel.GetComponent<Animator>().SetTrigger("tomenu");
     }
     public void SelectLevel() {
@@ -178,32 +183,31 @@ public class UIManager : MonoBehaviour {
             showMoreAnim.SetTrigger("close");
             isShowMoreOpen = false;
         }
-
         curSelectLevelIndex = Convert.ToInt32(EventSystem.current.currentSelectedGameObject.name);
         PlayerPrefs.SetInt("PlayTimes", PlayerPrefs.GetInt("PlayTimes", 0) + 1);//记录游玩次数
         Debug.Log(EventSystem.current.currentSelectedGameObject.name);
-        if (levels[curSelectLevelIndex].isLevelLock == false) {
+        if (curSelectLevelIndex==0|| curSelectLevelIndex==1) {
             SceneManager.LoadScene(1);
         }
         else {
             messageText.text = "关卡未解锁";
             messageText.transform.parent.gameObject.SetActive(true);
         }
+        PlayerPrefs.SetInt("level", Convert.ToInt32(EventSystem.current.currentSelectedGameObject.name));
     }
     public void ClearHistoryScore() {
-        for (int i = 0; i <= PlayerPrefs.GetInt("CurLevel"); i++) {
+        for (int i = 0; i <= 13; i++) {
             levels[i].Lock();
         }
         levels[0].Unlock();
-        for (int i = 1; i <= 3; i++) {
-            levels[0].transform.GetChild(1).transform.GetChild(i).gameObject.SetActive(false);
-        }
+        levels[1].Unlock();
         if (canAudio) {
             AudioSource.PlayClipAtPoint(audios[0], Camera.main.transform.position, 0.5f);
         }
         PlayerPrefs.DeleteAll();
         audioOff.SetActive(false);
         Camera.main.GetComponent<AudioSource>().Play();
+
     }
     public Text playTimeNumsText;
     public Text clearModelNumsText;
@@ -250,14 +254,20 @@ public class UIManager : MonoBehaviour {
         if (isShowMoreOpen == false) {
             showMoreBtn.GetComponent<Animator>().SetTrigger("open");
             showMorePanel.GetComponent<Animator>().SetTrigger("open");
+            showMoreBtn.GetComponent<UnityEngine.UI.Button>().enabled = false;
             isShowMoreOpen = true;
         }
         else {
             showMoreBtn.GetComponent<Animator>().SetTrigger("close");
             showMorePanel.GetComponent<Animator>().SetTrigger("close");
+            showMoreBtn.GetComponent<UnityEngine.UI.Button>().enabled = false;
             isShowMoreOpen = false;
         }
     }
+
+    public Text time1;
+    public Text time2;
+    public Text time3;
     public void TopKOpen() {
         if (isShowMoreOpen) {
             showMoreAnim.SetTrigger("close");
@@ -267,21 +277,27 @@ public class UIManager : MonoBehaviour {
         topKPanel.GetComponent<Animator>().SetTrigger("open");
         if (PlayerPrefs.GetInt("Top1", 0) != 0) {
             top1.text = PlayerPrefs.GetInt("Top1") + "";
+            time1.text = PlayerPrefs.GetInt("Time1", 0) + "";
         }
         else {
             top1.text = "暂未获得成绩";
+            time1.text = "暂未获得时长";
         }
         if (PlayerPrefs.GetInt("Top2", 0) != 0) {
             top2.text = PlayerPrefs.GetInt("Top2") + "";
+            time2.text = PlayerPrefs.GetInt("Time2", 0) + "";
         }
         else {
             top2.text = "暂未获得成绩";
+            top2.text = "暂未获得时长";
         }
         if (PlayerPrefs.GetInt("Top3", 0) != 0) {
             top3.text = PlayerPrefs.GetInt("Top3") + "";
+            time3.text = PlayerPrefs.GetInt("Time3", 0) + "";
         }
         else {
             top3.text = "暂未获得成绩";
+            time1.text = "暂未获得时长";
         }
     }
     public void TopKClose() {
@@ -408,9 +424,52 @@ public class UIManager : MonoBehaviour {
                 else {
                     messageText.text = "购买失败,钻石不足!";
                 }
-                
             }
         }
         messageText.transform.parent.gameObject.SetActive(true);
+    }
+    public Animator chatPanelAnim;
+    public void ChatController() {
+        if (isChatOpen==false) {
+            chatPanelAnim.SetTrigger("open");
+        }
+        if (isShowMoreOpen) {
+            showMoreAnim.SetTrigger("close");
+            isShowMoreOpen = false;
+        }
+
+        if (yourMessage.text!="") {
+            yourMessage.text += "\n" + "历史消息记录              ";
+            yourMessage.color=Color.grey;
+        }
+    }
+
+    public void ChatPanelClose() {
+        chatPanelAnim.SetTrigger("close");
+    }
+    public InputField inputField;
+    public Text yourMessage;
+    public void SendMessage() {
+        yourMessage.color = Color.white;
+        if (inputField.text!="") {
+            if (textQueue.Count<=10) {
+                textQueue.Enqueue(inputField.text);
+            }
+            else {
+                textQueue.Dequeue();
+                textQueue.Enqueue(inputField.text);
+            }
+            for (int i = 0; i < textQueue.Count; i++) {
+                //yourMessage=textQueue
+            }
+            yourMessage.text = yourMessage.text+"\n" + inputField.text;
+        }
+        else {
+            messageText.text = "发送内容不能为空!";
+            messageText.transform.parent.gameObject.SetActive(true);
+        }
+        inputField.text = "";
+        inputField.ActivateInputField();
+        
     }
 }

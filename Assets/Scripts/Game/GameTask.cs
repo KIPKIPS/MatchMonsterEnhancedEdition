@@ -17,9 +17,12 @@ public class GameTask {
             return new[] {"0", "任务:消灭" + data + "只怪兽",data+"", data / 20 + ""};
         }
         //分数任务
-        else {
+        else if(taskType==1){
             int data = Random.Range(5, 15) *100;
             return new[] { "1","分数达到" + data + "分", data + "", "" +data / 100  };
+        }
+        else {
+            return new[] { "2", "完成一次七连消", 7 + "", 20 + "" };
         }
     }
 }

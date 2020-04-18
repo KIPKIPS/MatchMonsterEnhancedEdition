@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -13,6 +14,8 @@ public class GameManager : MonoBehaviour {
         get { return _instance; }
         set { _instance = value; }
     }
+    public bool isLevelPass;
+    public GameObject[] scoreAddEffects;
     public int xCol;//列
     public int yRow;//行
     public GameObject gridPrefab;
@@ -56,12 +59,11 @@ public class GameManager : MonoBehaviour {
     public GameObject beginPanel;
     public bool gameBegin;
     private int scoreStep;
-
+    int curLevelTime;
     public Transform canvas;
     public GameObject[] timeAddEffetc;
     public int awardNums;
     public Text curStep;
-
     public int step; //二次移动
     public bool isSkill;
     public bool canClick;
@@ -74,17 +76,22 @@ public class GameManager : MonoBehaviour {
     private string curTaskType;
     private bool showTaskFinishedPanel;
     public GameObject taskFinishPanel;
-
+    private int matchSixTimes;
     public Image bar;
     public Text progress;
     private bool doubleScore;
     public Text diamandText;
+    public GameObject passImage;
     void Awake() {
+        curLevelTime = 60;
+        matchSixTimes = 0;
+        isLevelPass = false;
         doubleScore = false;
         taskFinishPanel.SetActive(false);
-        showTaskFinishedPanel = true;
+        //showTaskFinishedPanel = true;
         curClearModels = 0;
-        GameTask task=new GameTask(UnityEngine.Random.Range(0,2));
+        //GameTask task=new GameTask(UnityEngine.Random.Range(0,2));
+        GameTask task = new GameTask(2);
         string[] taskInfo = task.TaskInfo();
         taskText.text = taskInfo[1];
         awardText.text = taskInfo[3];
@@ -99,6 +106,7 @@ public class GameManager : MonoBehaviour {
         gameBegin = false;
         gameover = false;
         instance = this;
+        
         canAudio = PlayerPrefs.GetInt("Audio", 1) == 1;
         if (canAudio) {
             audioOnOff.SetActive(false);
@@ -109,8 +117,12 @@ public class GameManager : MonoBehaviour {
             Camera.main.GetComponent<AudioSource>().Stop();
         }
         beginPanel.SetActive(true);
+        if (PlayerPrefs.GetInt("level")==1) {
+            Time.timeScale = 0.1f;
+        }
     }
     void Start() {
+        passImage.SetActive(false);
         models = new ModelBase[xCol, yRow];
         //为字典赋值
         modelPrefabDict = new Dictionary<ModelType, GameObject>();
@@ -133,12 +145,6 @@ public class GameManager : MonoBehaviour {
                 CreatNewModel(x, y, ModelType.Empty);
             }
         }
-        //        Destroy(models[4, 4].gameObject);
-        //        models[4, 4] = CreatNewModel(4, 4, ModelType.CrossClear);
-        //        Destroy(models[4, 6].gameObject);
-        //        models[4, 6] = CreatNewModel(4, 6, ModelType.RainBow);
-        //        Destroy(models[5, 5].gameObject);
-        //        models[5, 5] = CreatNewModel(5, 5, ModelType.RainBow);
     }
 
     void Update() {
@@ -183,7 +189,6 @@ public class GameManager : MonoBehaviour {
                 }
             }
             else {
-                
                 if (score >= goalNums) {
                     Debug.Log("task 1 finish");
                     taskFinishPanel.SetActive(true);
@@ -208,9 +213,9 @@ public class GameManager : MonoBehaviour {
     public IEnumerator FillAll(float t) {
         bool needFill = true;
         while (needFill) {
-            yield return new WaitForSeconds(t);
-            while (Fill(t)) {
-                yield return new WaitForSeconds(t);
+            yield return new WaitForSeconds(5*t);
+            while (Fill(5*t)) {
+                yield return new WaitForSeconds(5*t);
             }
             //清除匹配的model
             needFill = ClearAllMatchModels();
@@ -417,7 +422,7 @@ public class GameManager : MonoBehaviour {
                     step = 0;
                     ClearAllMatchModels();//清除所有匹配的model
                     StartCoroutine(FillAll(fillTime));//将消除后的空位进行填充
-                    curStep.text = step + "";
+                    curStep.text = 2 + "";
                 }
                 else {
                     m1.ModelMoveComponent.Move(m2.X, m2.Y, fillTime);//交换
@@ -435,7 +440,7 @@ public class GameManager : MonoBehaviour {
                     ClearAllMatchModels();//清除所有匹配的model
                     StartCoroutine(FillAll(fillTime));//将消除后的空位进行填充
                     step = 0;
-                    curStep.text = step + "";
+                    curStep.text =  "2";
                 }
                 else {
                     //还原基础脚本
@@ -668,38 +673,48 @@ public class GameManager : MonoBehaviour {
                                 case 3:
                                     scoreStep = 20;
                                     score += scoreStep;
+                                    ScoreAddEffect(0);
                                     break;
                                 case 4:
                                     Excellent(0);
                                     scoreStep = 60;
                                     score += scoreStep;
+                                    ScoreAddEffect(1);
                                     break;
                                 case 5:
                                     scoreStep = 80;
                                     score += scoreStep;
                                     if (isSkill == false) {
                                         gameTime += 6f;
+                                        curLevelTime += 6;
                                         Excellent(1);
                                         PlayerPrefs.SetInt("TimeAddNums", PlayerPrefs.GetInt("TimeAddNums", 0) + 6);//记录累计加时
                                     }
+                                    ScoreAddEffect(2);
                                     break;
                                 case 6:
+                                    matchSixTimes++;
                                     scoreStep = 180;
                                     score += scoreStep;
                                     if (isSkill == false) {
                                         gameTime += 10;
+                                        curLevelTime += 10;
                                         Excellent(2);
                                         PlayerPrefs.SetInt("TimeAddNums", PlayerPrefs.GetInt("TimeAddNums", 0) + 10);//记录累计加时
                                     }
+                                    ScoreAddEffect(3);
                                     break;
                                 case 7:
                                     scoreStep = 310;
                                     score += scoreStep;
                                     if (isSkill == false) {
+                                        curLevelTime += 15;
                                         gameTime += 15;
                                         Excellent(3);
                                         PlayerPrefs.SetInt("TimeAddNums", PlayerPrefs.GetInt("TimeAddNums", 0) + 15);//记录累计加时
                                     }
+                                    ScoreAddEffect(4);
+                                    showTaskFinishedPanel = true;
                                     break;
                             }
                         }
@@ -717,9 +732,7 @@ public class GameManager : MonoBehaviour {
                         }
 
                         if (isSkill) {
-                            if (UnityEngine.Random.Range(0, 3)==1) {
-                                specialModelType = ModelType.Count;
-                            }
+                            specialModelType = ModelType.Count;
                         }
                         matchList.Add(models[model.x, model.y]);
                         foreach (var m in matchList) {
@@ -796,6 +809,7 @@ public class GameManager : MonoBehaviour {
     #endregion
     //处理UI界面的事件
     #region UI Events
+    //加时特效
     public void Excellent(int index) {
         Instantiate(excellent[index], spawn);
         if (index != 0) {
@@ -807,6 +821,13 @@ public class GameManager : MonoBehaviour {
             }
             go.transform.rotation = Quaternion.Euler(new Vector3(0, 0, 180));
         }
+    }
+    //加分特效
+    public void ScoreAddEffect(int index) {
+        Debug.Log(index+3);
+        GameObject go = Instantiate(scoreAddEffects[index], canvas);
+        go.GetComponent<RectTransform>().anchoredPosition=new Vector2(840,980);
+        go.transform.rotation = Quaternion.Euler(new Vector3(0, 0, 180));
     }
     public void Pause() {
         pausePanel.SetActive(true);
@@ -871,25 +892,34 @@ public class GameManager : MonoBehaviour {
     }
     //游戏结束的逻辑
     public void GameOver() {
+        //排行榜
         if (score>PlayerPrefs.GetInt("Top1",0)) {
             if (PlayerPrefs.GetInt("Top2", 0)!=0) {
                 PlayerPrefs.SetInt("Top3",PlayerPrefs.GetInt("Top2"));
+                PlayerPrefs.SetInt("Time3", PlayerPrefs.GetInt("Time2"));//
                 PlayerPrefs.SetInt("Top2", PlayerPrefs.GetInt("Top1"));
+                PlayerPrefs.SetInt("Time2", PlayerPrefs.GetInt("Time1"));//
             }
             else {
                 PlayerPrefs.SetInt("Top2", PlayerPrefs.GetInt("Top1"));
+                PlayerPrefs.SetInt("Time2", PlayerPrefs.GetInt("Time1"));//
             }
             PlayerPrefs.SetInt("Top1",score);
+            PlayerPrefs.SetInt("Time1", curLevelTime);//
         }
         else if (score > PlayerPrefs.GetInt("Top2", 0)) {
             if (PlayerPrefs.GetInt("Top3",0)!=0) {
                 PlayerPrefs.SetInt("Top3", PlayerPrefs.GetInt("Top2"));
+                PlayerPrefs.SetInt("Time3", PlayerPrefs.GetInt("Time2"));//
             }
             PlayerPrefs.SetInt("Top2", score);
+            PlayerPrefs.SetInt("Time2",curLevelTime);//
         }
         else if(score > PlayerPrefs.GetInt("Top3", 0)) {
             PlayerPrefs.SetInt("Top3", score);
+            PlayerPrefs.SetInt("Time3", curLevelTime);//
         }
+
         if (awardNums > PlayerPrefs.GetInt("LuckDog", 0)) {
             PlayerPrefs.SetInt("LuckDog", awardNums);
         }
@@ -899,13 +929,18 @@ public class GameManager : MonoBehaviour {
             PlayerPrefs.SetInt("HistoryHighestScore", score);
             breakRecord.SetActive(true);
         }
+        //2000+六消
+        if (score >= 2000&&matchSixTimes>=2) {
+            Debug.Log(score);
+            Debug.Log(passImage.name);
+            passImage.SetActive(true);
+        }
         gameoverPanel.GetComponent<Animator>().SetTrigger("display");
         overScoreText.text = score.ToString();
         historySoreText.text = PlayerPrefs.GetInt("HistoryHighestScore").ToString();
         StartCoroutine(FillAll(0.1f));
         if (curTaskType == "0") {
             if (curClearModels >= goalNums) {
-                //Debug.Log("task finish");
                 diamandText.text = award + "";
                 PlayerPrefs.SetInt("Diamand", PlayerPrefs.GetInt("Diamand", 0) + award);
                 PlayerPrefs.SetInt("CurLevel", PlayerPrefs.GetInt("CurLevel", 0)+1);//通关
@@ -916,7 +951,6 @@ public class GameManager : MonoBehaviour {
         }
         else {
             if (score >= goalNums) {
-                //Debug.Log("task finish");
                 diamandText.text = award + "";
                 PlayerPrefs.SetInt("Diamand", PlayerPrefs.GetInt("Diamand", 0) + award);
                 PlayerPrefs.SetInt("CurLevel", PlayerPrefs.GetInt("CurLevel", 0) + 1);//通关
