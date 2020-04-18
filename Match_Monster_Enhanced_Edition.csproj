@@ -250,6 +250,7 @@
     <Compile Include="Assets\Scripts\Game\ModelColorClearByType.cs" />
     <Compile Include="Assets\Scripts\Game\ModelMove.cs" />
     <Compile Include="Assets\Scripts\Start\AchievementEvent.cs" />
+    <Compile Include="Assets\Scripts\Start\LevelManager.cs" />
     <Compile Include="Assets\Scripts\Start\MapAnimateEvent.cs" />
     <Compile Include="Assets\Scripts\Start\MapController.cs" />
     <Compile Include="Assets\Scripts\Start\UIManager.cs" />

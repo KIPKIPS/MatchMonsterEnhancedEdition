@@ -159,12 +159,12 @@ public class GameManager : MonoBehaviour {
             restTimeText.text = gameTime.ToString("0.0");//0取整,0.0保留一位小数,0.00保留两位小数......
             scoreText.text = score + "";
             if (curTaskType=="0") {
-                progress.text = ((float) curClearModels * 100 / goalNums).ToString("0.0") + "%";
+                progress.text = Mathf.Clamp((float)curClearModels * 100 / goalNums, 0, 100).ToString("0.0") + "%";
                 bar.fillAmount = Mathf.Clamp(Mathf.Lerp(bar.fillAmount, (float)curClearModels / goalNums, 0.2f),0,1);
             }
             else {
                 bar.fillAmount = Mathf.Clamp(Mathf.Lerp(bar.fillAmount, (float)score / goalNums, 0.2f),0,1);
-                progress.text = ((float)score * 100 / goalNums).ToString("0.0") + "%";
+                progress.text = (Mathf.Clamp((float)score * 100 / goalNums,0,100)).ToString("0.0") + "%";
             }
             if (progress.text == "100%"&&doubleScore) {
 
@@ -908,6 +908,7 @@ public class GameManager : MonoBehaviour {
                 //Debug.Log("task finish");
                 diamandText.text = award + "";
                 PlayerPrefs.SetInt("Diamand", PlayerPrefs.GetInt("Diamand", 0) + award);
+                PlayerPrefs.SetInt("CurLevel", PlayerPrefs.GetInt("CurLevel", 0)+1);//通关
             }
             else {
                 diamandText.text =  "0";
@@ -918,6 +919,7 @@ public class GameManager : MonoBehaviour {
                 //Debug.Log("task finish");
                 diamandText.text = award + "";
                 PlayerPrefs.SetInt("Diamand", PlayerPrefs.GetInt("Diamand", 0) + award);
+                PlayerPrefs.SetInt("CurLevel", PlayerPrefs.GetInt("CurLevel", 0) + 1);//通关
             }
             else {
                 diamandText.text = "0";
