@@ -281,7 +281,7 @@ public class UIManager : MonoBehaviour {
         }
         else {
             top1.text = "暂未获得成绩";
-            time1.text = "暂未获得时长";
+            time1.text = "暂无";
         }
         if (PlayerPrefs.GetInt("Top2", 0) != 0) {
             top2.text = PlayerPrefs.GetInt("Top2") + "";
@@ -289,7 +289,7 @@ public class UIManager : MonoBehaviour {
         }
         else {
             top2.text = "暂未获得成绩";
-            top2.text = "暂未获得时长";
+            time2.text = "暂无";
         }
         if (PlayerPrefs.GetInt("Top3", 0) != 0) {
             top3.text = PlayerPrefs.GetInt("Top3") + "";
@@ -297,7 +297,7 @@ public class UIManager : MonoBehaviour {
         }
         else {
             top3.text = "暂未获得成绩";
-            time1.text = "暂未获得时长";
+            time3.text = "暂无";
         }
     }
     public void TopKClose() {

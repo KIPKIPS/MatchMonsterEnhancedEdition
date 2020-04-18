@@ -213,9 +213,9 @@ public class GameManager : MonoBehaviour {
     public IEnumerator FillAll(float t) {
         bool needFill = true;
         while (needFill) {
-            yield return new WaitForSeconds(5*t);
-            while (Fill(5*t)) {
-                yield return new WaitForSeconds(5*t);
+            yield return new WaitForSeconds(t);
+            while (Fill(t)) {
+                yield return new WaitForSeconds(t);
             }
             //清除匹配的model
             needFill = ClearAllMatchModels();
