@@ -713,6 +713,8 @@ public class GameManager : MonoBehaviour {
                                         Excellent(3);
                                         PlayerPrefs.SetInt("TimeAddNums", PlayerPrefs.GetInt("TimeAddNums", 0) + 15);//记录累计加时
                                     }
+                                    PlayerPrefs.SetInt("Diamand", PlayerPrefs.GetInt("Diamand", 0) + award);
+                                    diamandText.text = award + "";
                                     ScoreAddEffect(4);
                                     showTaskFinishedPanel = true;
                                     break;
@@ -941,22 +943,21 @@ public class GameManager : MonoBehaviour {
         StartCoroutine(FillAll(0.1f));
         if (curTaskType == "0") {
             if (curClearModels >= goalNums) {
-                diamandText.text = award + "";
-                PlayerPrefs.SetInt("Diamand", PlayerPrefs.GetInt("Diamand", 0) + award);
+                //diamandText.text = award + "";
+                //PlayerPrefs.SetInt("Diamand", PlayerPrefs.GetInt("Diamand", 0) + award);
                 PlayerPrefs.SetInt("CurLevel", PlayerPrefs.GetInt("CurLevel", 0)+1);//通关
             }
             else {
-                diamandText.text =  "0";
+                //diamandText.text =  "0";
             }
         }
         else {
             if (score >= goalNums) {
-                diamandText.text = award + "";
-                PlayerPrefs.SetInt("Diamand", PlayerPrefs.GetInt("Diamand", 0) + award);
+                //diamandText.text = award + "";
                 PlayerPrefs.SetInt("CurLevel", PlayerPrefs.GetInt("CurLevel", 0) + 1);//通关
             }
             else {
-                diamandText.text = "0";
+                //diamandText.text = "0";
             }
         }
     }
